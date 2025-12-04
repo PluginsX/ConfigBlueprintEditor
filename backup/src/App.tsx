@@ -12,10 +12,9 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import styled from 'styled-components';
-import GlobalStyles from './styles/global';
 
 import CustomNode from './components/CustomNode';
-import Toolbar from './components/layout/Toolbar';
+import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import PropertyPanel from './components/PropertyPanel';
 import StateTabs from './components/StateTabs';
@@ -97,12 +96,6 @@ function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(currentState?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState(currentState?.edges || []);
   const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
-  
-  // 右键按下时的光标位置和画布位置
-  const rightClickStartPosition = useRef<{ x: number; y: number } | null>(null);
-  const rightClickCanvasPosition = useRef<{ x: number; y: number } | null>(null);
-  const rightClickThreshold = 1; // 右键移动判定阈值（像素）
-  const isRightDragging = useRef<boolean>(false);
 
   // 同步节点状态到应用状态（仅当节点或边实际更改时）
   React.useEffect(() => {
@@ -395,105 +388,18 @@ function App() {
     }
   };
 
-  // 处理鼠标事件（右键拖拽平移和右键菜单控制）
-  React.useEffect(() => {
-    // 处理鼠标按下事件（右键开始位置记录）
-    const handleDocumentMouseDown = (event: Event) => {
-      const mouseEvent = event as unknown as MouseEvent;
-      if (mouseEvent.button === 2) { // 右键按下
-        rightClickStartPosition.current = { x: mouseEvent.clientX, y: mouseEvent.clientY };
-        if (reactFlowInstance) {
-          rightClickCanvasPosition.current = reactFlowInstance.getViewport();
-        }
-        // 不立即阻止右键菜单，等待释放时判断是否拖拽
-      }
-    };
-
-    // 处理鼠标移动事件（实现右键拖拽平移）
-    const handleDocumentMouseMove = (event: Event) => {
-      const mouseEvent = event as unknown as MouseEvent;
-      if (mouseEvent.buttons === 2 && rightClickStartPosition.current && rightClickCanvasPosition.current && reactFlowInstance) {
-        // 计算光标移动距离
-        const deltaX = mouseEvent.clientX - rightClickStartPosition.current.x;
-        const deltaY = mouseEvent.clientY - rightClickStartPosition.current.y;
-
-        // 如果移动距离大于阈值，则开始拖拽平移
-        if (Math.abs(deltaX) > rightClickThreshold || Math.abs(deltaY) > rightClickThreshold) {
-          isRightDragging.current = true;
-
-          // 计算新的画布位置
-          const newPosition = {
-            x: rightClickCanvasPosition.current.x + deltaX,
-            y: rightClickCanvasPosition.current.y + deltaY,
-            zoom: reactFlowInstance.getZoom()
-          };
-
-          // 更新画布位置
-          reactFlowInstance.setViewport(newPosition);
-        }
-      }
-    };
-
-    // 处理右键菜单事件
-    const handleDocumentContextMenu = (event: Event) => {
-      // 如果发生了拖拽，则阻止右键菜单
-      if (isRightDragging.current) {
-        event.preventDefault();
-      }
-    };
-
-    // 处理鼠标释放事件（结束拖拽平移）
-    const handleDocumentMouseUp = (event: Event) => {
-      const mouseEvent = event as unknown as MouseEvent;
-      if (mouseEvent.button === 2) {
-        // 延迟重置拖拽状态和记录的位置，以便右键菜单事件能正确判断是否阻止
-        setTimeout(() => {
-          isRightDragging.current = false;
-          rightClickStartPosition.current = null;
-          rightClickCanvasPosition.current = null;
-        }, 100);
-      }
-    };
-
-    // 添加所有事件监听器
-    document.addEventListener('mousedown', handleDocumentMouseDown);
-    document.addEventListener('mousemove', handleDocumentMouseMove);
-    document.addEventListener('mouseup', handleDocumentMouseUp);
-    document.addEventListener('contextmenu', handleDocumentContextMenu);
-
-    // 清理所有事件监听器
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentMouseDown);
-      document.removeEventListener('mousemove', handleDocumentMouseMove);
-      document.removeEventListener('mouseup', handleDocumentMouseUp);
-      document.removeEventListener('contextmenu', handleDocumentContextMenu);
-    };
-  }, [reactFlowInstance]);
-
   // 处理画布右键点击
   const onPaneContextMenu = (event: MouseEvent) => {
-    
-    // 如果不是拖拽平移，则阻止默认菜单并打开自定义菜单
-    if (!isRightDragging.current) {
-      event.preventDefault();
-      const currentPos = { x: event.clientX, y: event.clientY };
-      setContextMenuPosition(currentPos);
-      setSelectedNode(null); // 点击空白处时清除选中节点
-    }
-    // 如果是拖拽平移，则不阻止默认菜单（浏览器会默认不显示右键菜单）
+    event.preventDefault();
+    setContextMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedNode(null); // 点击空白处时清除选中节点
   };
 
   // 处理节点右键点击
   const onNodeContextMenu = (event: React.MouseEvent, node: Node) => {
-    
-    // 如果不是拖拽平移，则阻止默认菜单并打开自定义菜单
-    if (!isRightDragging.current) {
-      event.preventDefault();
-      const currentPos = { x: event.clientX, y: event.clientY };
-      setContextMenuPosition(currentPos);
-      setSelectedNode(node); // 记录当前选中的节点
-    }
-    // 如果是拖拽平移，则不阻止默认菜单（浏览器会默认不显示右键菜单）
+    event.preventDefault();
+    setContextMenuPosition({ x: event.clientX, y: event.clientY });
+    setSelectedNode(node); // 记录当前选中的节点
   };
 
   // 关闭右键菜单
@@ -619,8 +525,7 @@ function App() {
   }, []);
 
   return (
-    <> 
-      <GlobalStyles />
+    <>
       <EditorContainer
         onContextMenu={(e) => e.preventDefault()}
       >
@@ -652,9 +557,6 @@ function App() {
               onPaneContextMenu={onPaneContextMenu}
               nodeTypes={nodeTypes}
               fitView
-              proOptions={{ hideAttribution: true }}
-              panOnDrag={false}
-              selectionOnDrag={true}
             >
               <Controls />
               <Background variant={BackgroundVariant.Lines} gap={20} size={1} color="#333333" />

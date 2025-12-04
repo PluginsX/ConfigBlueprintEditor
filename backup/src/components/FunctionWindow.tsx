@@ -154,9 +154,6 @@ const FunctionWindow: React.FC<FunctionWindowProps> = ({
           onConnect={handleConnect}
           nodeTypes={nodeTypes}
           fitView
-          proOptions={{ hideAttribution: true }}
-          panOnDrag={false}
-          selectionOnDrag={true}
         >
           <Controls />
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />

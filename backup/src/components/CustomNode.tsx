@@ -1,15 +1,15 @@
 import React from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, Position, NodeProps } from 'reactflow';
 import styled from 'styled-components';
 import { NODE_TYPES_CONFIG } from '../types/NodeTypes';
 
 // UE蓝图风格节点容器 - 带彩色标题栏
-const NodeContainer = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== 'nodeType' }) <{ nodeType: string }>`
+const NodeContainer = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== 'nodeType' })<{ nodeType: string }>`
   min-width: 180px;
   background: #2A2A2A;
   color: white;
   border: 1px solid #404040;
-  border-radius: 10px; /* 统一为更尖锐的圆角 */
+  border-radius: 1px; /* 统一为更尖锐的圆角 */
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5), 
               inset 0 1px 0 rgba(255, 255, 255, 0.05);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -38,7 +38,7 @@ const NodeContainer = styled.div.withConfig({ shouldForwardProp: (prop) => prop 
 `;
 
 // 节点类型图标（使用CSS绘制简单图标）
-const NodeIcon = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== 'iconType' }) <{ iconType?: string }>`
+const NodeIcon = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== 'iconType' })<{ iconType?: string }>`
   width: 14px;
   height: 14px;
   display: flex;
@@ -108,7 +108,7 @@ const NodeIcon = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== '
 `;
 
 // UE蓝图风格彩色标题栏
-const NodeTitleBar = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== 'nodeType' }) <{ nodeType: string }>`
+const NodeTitleBar = styled.div.withConfig({ shouldForwardProp: (prop) => prop !== 'nodeType' })<{ nodeType: string }>`
   padding: 4px 8px;
   background: ${(props) => {
     const config = NODE_TYPES_CONFIG[props.nodeType as keyof typeof NODE_TYPES_CONFIG];
@@ -125,7 +125,7 @@ const NodeTitleBar = styled.div.withConfig({ shouldForwardProp: (prop) => prop !
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border-radius: 10px 10px 0 0; /* 统一圆角 */
+  border-radius: 1px 1px 0 0; /* 统一圆角 */
 `;
 
 // 节点子标题
@@ -241,6 +241,10 @@ const ExecutionHandle = styled(Handle)`
     left: 2px;
     width: calc(100% - 4px);
     height: calc(100% - 4px);
+    
+    /* 创建内部填充的五边形 */
+    background: #FFD700; /* 金色填充 */
+    clip-path: polygon(0% 50%, 25% 10%, 90% 10%, 90% 90%, 25% 90%);
   }
   
   /* 向左箭头 - 输入引脚 */
@@ -264,13 +268,18 @@ const ExecutionHandle = styled(Handle)`
     left: 2px;
     width: calc(100% - 4px);
     height: calc(100% - 4px);
+    
+    /* 创建内部填充的五边形 */
+    background: #FFD700; /* 金色填充 */
+    clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%);
   }
 `;
 
 // UE蓝图风格数据引脚 - 圆形设计
-const DataHandle = styled(Handle).withConfig({ shouldForwardProp: (prop) => prop !== 'dataType' }) <{ dataType?: string }>`
+const DataHandle = styled(Handle).withConfig({ shouldForwardProp: (prop) => prop !== 'dataType' })<{ dataType?: string }>`
   width: 16px !important;
   height: 16px !important;
+  border: 2px solid white !important;
   background: ${props => {
     switch (props.dataType) {
       case 'string': return '#9C27B0';  // 紫色 - 字符串
@@ -340,59 +349,11 @@ const NodeInputContainer = styled.div`
 
 // 自定义节点组件
 const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
-
-  // 判断是否为运算节点
-  const isOperatorNode = () => {
-    return data.nodeType === 'add' || data.nodeType === 'subtract' ||
-      data.nodeType === 'multiply' || data.nodeType === 'divide' ||
-      data.nodeType === 'modulo' || data.nodeType === 'power' ||
-      data.nodeType === 'equal' || data.nodeType === 'not_equal' ||
-      data.nodeType === 'greater' || data.nodeType === 'less' ||
-      data.nodeType === 'greater_or_equal' || data.nodeType === 'less_or_equal' ||
-      data.nodeType === 'and' || data.nodeType === 'or';
-  };
-
-  // 判断是否为单输入运算节点
-  const isSingleInputOperatorNode = () => {
-    return data.nodeType === 'not';
-  };
-
   // 分离执行流和数据流引脚
   const executionInputs = data.inputs?.filter((input: any) => input.type === 'execution') || [];
   const executionOutputs = data.outputs?.filter((output: any) => output.type === 'execution') || [];
-  // 运算节点保留所有数据输入引脚
-  let dataInputs = data.inputs?.filter((input: any) => input.type === 'data') || [];
-  // 确保运算节点至少有两个数据输入引脚
-  if (isOperatorNode() && dataInputs.length < 2) {
-    dataInputs = [
-      { id: 'input-1', label: 'A', type: 'data', dataType: 'number' },
-      { id: 'input-2', label: 'B', type: 'data', dataType: 'number' }
-    ];
-  }
-  // 确保单输入运算节点至少有一个数据输入引脚
-  if (isSingleInputOperatorNode() && dataInputs.length < 1) {
-    dataInputs = [
-      { id: 'input-1', label: 'Input', type: 'data', dataType: 'boolean' }
-    ];
-  }
-  let dataOutputs = data.outputs?.filter((output: any) => output.type === 'data') || [];
-
-  // 运算节点右侧只排列一个运算结果输出的数据引脚
-  if (isOperatorNode() || isSingleInputOperatorNode()) {
-    // 对于运算节点，只保留第一个输出引脚作为结果输出
-    dataOutputs = dataOutputs.length > 0 ? [dataOutputs[0]] : [
-      {
-        id: 'output-1',
-        label: '结果',
-        type: 'data',
-        dataType: isOperatorNode() && (data.nodeType === 'equal' || data.nodeType === 'not_equal' ||
-          data.nodeType === 'greater' || data.nodeType === 'less' ||
-          data.nodeType === 'greater_or_equal' || data.nodeType === 'less_or_equal' ||
-          data.nodeType === 'and' || data.nodeType === 'or') ? 'boolean' :
-          isSingleInputOperatorNode() ? 'boolean' : 'number'
-      }
-    ];
-  }
+  const dataInputs = data.inputs?.filter((input: any) => input.type === 'data') || [];
+  const dataOutputs = data.outputs?.filter((output: any) => output.type === 'data') || [];
 
   // 获取节点图标类型
   const getNodeIconType = () => {
@@ -403,17 +364,17 @@ const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
     if (data.nodeType.includes('string')) return 'string';
     if (data.nodeType.includes('number')) return 'number';
     if (data.nodeType.includes('boolean')) return 'boolean';
-    if (data.nodeType.includes('add') || data.nodeType.includes('subtract') ||
-      data.nodeType.includes('multiply') || data.nodeType.includes('divide') ||
-      data.nodeType.includes('modulo') || data.nodeType.includes('power')) {
+    if (data.nodeType.includes('add') || data.nodeType.includes('subtract') || 
+        data.nodeType.includes('multiply') || data.nodeType.includes('divide') || 
+        data.nodeType.includes('modulo') || data.nodeType.includes('power')) {
       return 'number';
     }
-    if (data.nodeType.includes('equal') || data.nodeType.includes('not_equal') ||
-      data.nodeType.includes('greater') || data.nodeType.includes('less')) {
+    if (data.nodeType.includes('equal') || data.nodeType.includes('not_equal') || 
+        data.nodeType.includes('greater') || data.nodeType.includes('less')) {
       return 'boolean';
     }
-    if (data.nodeType.includes('and') || data.nodeType.includes('or') ||
-      data.nodeType.includes('not')) {
+    if (data.nodeType.includes('and') || data.nodeType.includes('or') || 
+        data.nodeType.includes('not')) {
       return 'boolean';
     }
     return 'execution';
@@ -428,6 +389,17 @@ const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
       return '';
     }
     return '';
+  };
+
+  // 判断是否为运算节点
+  const isOperatorNode = () => {
+    return data.nodeType === 'add' || data.nodeType === 'subtract' || 
+           data.nodeType === 'multiply' || data.nodeType === 'divide' || 
+           data.nodeType === 'modulo' || data.nodeType === 'power' || 
+           data.nodeType === 'equal' || data.nodeType === 'not_equal' || 
+           data.nodeType === 'greater' || data.nodeType === 'less' || 
+           data.nodeType === 'greater_or_equal' || data.nodeType === 'less_or_equal' || 
+           data.nodeType === 'and' || data.nodeType === 'or' || data.nodeType === 'not';
   };
 
   // 获取节点特殊标记（如"仅限开发"等）
@@ -449,60 +421,50 @@ const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
         </NodeTitleBar>
 
         {/* 执行输入引脚 - 移至标题栏高度并包含在节点内部 */}
-        {!isOperatorNode() && !isSingleInputOperatorNode() && executionInputs.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            left: '0px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            display: 'flex',
-            flexDirection: 'column',
+        {!isOperatorNode() && executionInputs.length > 0 && (
+          <div style={{ 
+            position: 'absolute', 
+            left: '0px', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            display: 'flex', 
+            flexDirection: 'column', 
             gap: '8px'
           }}>
-            {executionInputs.map((input: any, index: number) => {
-              const total = executionInputs.length || 1;
-              const topPercent = 30 + (40 * index) / Math.max(total - 1, 1);
-              return (
-                <div key={input.id} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  <ExecutionHandle
-                    type="target"
-                    position={Position.Left}
-                    id={input.id}
-                    data-position="left"
-                    style={{ top: `${topPercent}%` }}
-                  />
-                </div>
-              );
-            })}
+            {executionInputs.map((input: any) => (
+              <div key={input.id} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <ExecutionHandle
+                  type="target"
+                  position={Position.Left}
+                  id={input.id}
+                  data-position="left"
+                />
+              </div>
+            ))}
           </div>
         )}
 
         {/* 执行输出引脚 - 移至标题栏高度并包含在节点内部 */}
-        {!isOperatorNode() && !isSingleInputOperatorNode() && executionOutputs.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            right: '0px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            display: 'flex',
-            flexDirection: 'column',
+        {!isOperatorNode() && executionOutputs.length > 0 && (
+          <div style={{ 
+            position: 'absolute', 
+            right: '0px', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            display: 'flex', 
+            flexDirection: 'column', 
             gap: '8px'
           }}>
-            {executionOutputs.map((output: any, index: number) => {
-              const total = executionOutputs.length || 1;
-              const topPercent = 30 + (40 * index) / Math.max(total - 1, 1);
-              return (
-                <div key={output.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <ExecutionHandle
-                    type="source"
-                    position={Position.Right}
-                    id={output.id}
-                    data-position="right"
-                    style={{ top: `${topPercent}%` }}
-                  />
-                </div>
-              );
-            })}
+            {executionOutputs.map((output: any) => (
+              <div key={output.id} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <ExecutionHandle
+                  type="source"
+                  position={Position.Right}
+                  id={output.id}
+                  data-position="right"
+                />
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -525,24 +487,24 @@ const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
             />
           </NodeInputContainer>
         )}
-
+        
         {data.properties?.functionName && (
           <NodeContent>
             <PortLabel>Function Name</PortLabel>
           </NodeContent>
         )}
-
+        
         {data.properties?.eventType && (
           <NodeContent>
             <PortLabel>Event Type</PortLabel>
           </NodeContent>
         )}
-
+        
         {/* 运算节点特殊内容 */}
-        {(isOperatorNode() || isSingleInputOperatorNode()) && data.properties?.operator && (
-          <NodeContent style={{
-            fontSize: '14px',
-            fontWeight: 'bold',
+        {isOperatorNode() && data.properties?.operator && (
+          <NodeContent style={{ 
+            fontSize: '14px', 
+            fontWeight: 'bold', 
             padding: '8px',
             background: 'rgba(0, 0, 0, 0.6)',
             border: '2px solid rgba(255, 255, 255, 0.3)'
@@ -550,91 +512,46 @@ const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
             {data.properties.operator}
           </NodeContent>
         )}
-
+        
         {/* 没有特定属性时显示通用内容 */}
-        {!data.properties?.value && !data.properties?.functionName && !data.properties?.eventType && !isOperatorNode() && !isSingleInputOperatorNode() && (
+        {!data.properties?.value && !data.properties?.functionName && !data.properties?.eventType && !isOperatorNode() && (
           <NodeContent>
             {data.label}
           </NodeContent>
         )}
 
-        {/* 数据引脚区域 - 运算节点使用特殊布局 */}
-        {(isOperatorNode() || isSingleInputOperatorNode()) ? (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '8px' }}>
-            {/* 左侧数据输入引脚 - 垂直排列 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
-              {dataInputs.map((input: any, index: number) => {
-                const total = dataInputs.length || 1;
-                // 计算每个输入引脚在节点侧边的垂直位置（百分比），避免多个 Handle 叠在同一高度
-                const topPercent = 30 + (40 * index) / Math.max(total - 1, 1); // 大致分布在 30%~70% 之间
-                return (
-                  <div key={input.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <DataHandle
-                      type="target"
-                      position={Position.Left}
-                      id={input.id}
-                      dataType={input.dataType}
-                      style={{ top: `${topPercent}%` }}
-                    />
-                    <PortLabel>{input.label}</PortLabel>
-                  </div>
-                );
-              })}
-            </div>
+        {/* 数据引脚区域 */}
+        <PortsContainer>
+          {/* 左侧数据输入引脚 */}
+          <InputPorts>
+            {dataInputs.map((input: any) => (
+              <PortItem key={input.id}>
+                <DataHandle
+                  type="target"
+                  position={Position.Left}
+                  id={input.id}
+                  dataType={input.dataType}
+                />
+                <PortLabel>{input.label}</PortLabel>
+              </PortItem>
+            ))}
+          </InputPorts>
 
-            {/* 右侧数据输出引脚 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-              {dataOutputs.map((output: any, index: number) => {
-                const total = dataOutputs.length || 1;
-                const topPercent = 50; // 运算结果通常只有一个，引脚垂直居中即可
-                return (
-                  <div key={output.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <PortLabel>{output.label}</PortLabel>
-                    <DataHandle
-                      type="source"
-                      position={Position.Right}
-                      id={output.id}
-                      dataType={output.dataType}
-                      style={{ top: `${topPercent}%` }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <PortsContainer>
-            {/* 左侧数据输入引脚 */}
-            <InputPorts>
-              {dataInputs.map((input: any) => (
-                <PortItem key={input.id}>
-                  <DataHandle
-                    type="target"
-                    position={Position.Left}
-                    id={input.id}
-                    dataType={input.dataType}
-                  />
-                  <PortLabel>{input.label}</PortLabel>
-                </PortItem>
-              ))}
-            </InputPorts>
-
-            {/* 右侧数据输出引脚 */}
-            <OutputPorts>
-              {dataOutputs.map((output: any) => (
-                <PortItem key={output.id} isOutput>
-                  <PortLabel>{output.label}</PortLabel>
-                  <DataHandle
-                    type="source"
-                    position={Position.Right}
-                    id={output.id}
-                    dataType={output.dataType}
-                  />
-                </PortItem>
-              ))}
-            </OutputPorts>
-          </PortsContainer>
-        )}
+          {/* 右侧数据输出引脚 */}
+          <OutputPorts>
+            {dataOutputs.map((output: any) => (
+              <PortItem key={output.id} isOutput>
+                <PortLabel>{output.label}</PortLabel>
+                <DataHandle
+                  type="source"
+                  position={Position.Right}
+                  id={output.id}
+                  dataType={output.dataType}
+                />
+              </PortItem>
+            ))}
+          </OutputPorts>
+        </PortsContainer>
       </NodeContentContainer>
 
       {/* 节点警告标记（如仅限开发等） */}
