@@ -8,7 +8,6 @@ import ReactFlow, {
   useEdgesState,
   Controls,
   Background,
-  MiniMap,
   BackgroundVariant,
 } from 'reactflow';
 import styled from 'styled-components';
@@ -28,6 +27,7 @@ const WindowContainer = styled.div<{ position: { x: number; y: number }, size: {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  user-select: none;
 `;
 
 const WindowHeader = styled.div`
@@ -110,7 +110,7 @@ const FunctionWindow: React.FC<FunctionWindowProps> = ({
   onMinimize,
   onMaximize
 }) => {
-  const [localNodes, setLocalNodes, onLocalNodesChange] = useNodesState(nodes);
+  const [localNodes, , onLocalNodesChange] = useNodesState(nodes);
   const [localEdges, setLocalEdges, onLocalEdgesChange] = useEdgesState(edges);
 
   const handleConnect = (params: Connection) => {
@@ -123,6 +123,7 @@ const FunctionWindow: React.FC<FunctionWindowProps> = ({
       position={window.position}
       size={window.size}
       isMinimized={window.isMinimized}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <WindowHeader>
         <WindowTitle>{window.title}</WindowTitle>
@@ -155,7 +156,6 @@ const FunctionWindow: React.FC<FunctionWindowProps> = ({
           fitView
         >
           <Controls />
-          <MiniMap />
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         </ReactFlow>
       </WindowContent>

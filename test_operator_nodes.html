@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运算节点测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .node-example {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .node-title {
+            color: #00BCD4;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .node-pins {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .input-pins, .output-pins {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .pin {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .pin-circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .pin-label {
+            font-size: 12px;
+        }
+        .number-pin { background: #2196F3; }
+        .boolean-pin { background: #4CAF50; }
+        .any-pin { background: #607D8B; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>运算节点引脚配置测试</h1>
+        <p>以下显示运算节点应该具有的引脚配置（只有数据引脚，无执行引脚）：</p>
+        
+        <div class="node-example">
+            <div class="node-title">数值运算节点 (+ - * / % ^)</div>
+            <div class="node-pins">
+                <div class="input-pins">
+                    <div class="pin">
+                        <div class="pin-circle number-pin"></div>
+                        <span class="pin-label">A (number)</span>
+                    </div>
+                    <div class="pin">
+                        <div class="pin-circle number-pin"></div>
+                        <span class="pin-label">B (number)</span>
+                    </div>
+                </div>
+                <div class="output-pins">
+                    <div class="pin">
+                        <span class="pin-label">结果 (number)</span>
+                        <div class="pin-circle number-pin"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="node-example">
+            <div class="node-title">比较运算节点 (== != > < >= <=)</div>
+            <div class="node-pins">
+                <div class="input-pins">
+                    <div class="pin">
+                        <div class="pin-circle any-pin"></div>
+                        <span class="pin-label">A (any)</span>
+                    </div>
+                    <div class="pin">
+                        <div class="pin-circle any-pin"></div>
+                        <span class="pin-label">B (any)</span>
+                    </div>
+                </div>
+                <div class="output-pins">
+                    <div class="pin">
+                        <span class="pin-label">结果 (boolean)</span>
+                        <div class="pin-circle boolean-pin"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="node-example">
+            <div class="node-title">逻辑运算节点 (&& || !)</div>
+            <div class="node-pins">
+                <div class="input-pins">
+                    <div class="pin">
+                        <div class="pin-circle boolean-pin"></div>
+                        <span class="pin-label">A (boolean)</span>
+                    </div>
+                    <div class="pin">
+                        <div class="pin-circle boolean-pin"></div>
+                        <span class="pin-label">B (boolean)</span>
+                    </div>
+                </div>
+                <div class="output-pins">
+                    <div class="pin">
+                        <span class="pin-label">结果 (boolean)</span>
+                        <div class="pin-circle boolean-pin"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="node-example">
+            <div class="node-title">逻辑非节点 (!)</div>
+            <div class="node-pins">
+                <div class="input-pins">
+                    <div class="pin">
+                        <div class="pin-circle boolean-pin"></div>
+                        <span class="pin-label">A (boolean)</span>
+                    </div>
+                </div>
+                <div class="output-pins">
+                    <div class="pin">
+                        <span class="pin-label">结果 (boolean)</span>
+                        <div class="pin-circle boolean-pin"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p><strong>注意：</strong>所有运算节点都应该只有数据引脚，没有执行引脚（金色三角形）。</p>
+        <p>请访问 <a href="http://localhost:3001" style="color: #4CAF50;">http://localhost:3001</a> 验证实际显示效果。</p>
+    </div>
+</body>
+</html>

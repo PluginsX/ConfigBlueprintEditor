@@ -16,9 +16,9 @@ const TabList = styled.div`
   gap: 2px;
 `;
 
-const Tab = styled.button<{ active: boolean }>`
-  background: ${props => props.active ? '#007acc' : '#444'};
-  border: 1px solid ${props => props.active ? '#007acc' : '#666'};
+const Tab = styled.button<{ $active: boolean }>`
+  background: ${props => props.$active ? '#007acc' : '#444'};
+  border: 1px solid ${props => props.$active ? '#007acc' : '#666'};
   color: white;
   padding: 6px 12px;
   border-radius: 4px 4px 0 0;
@@ -29,7 +29,7 @@ const Tab = styled.button<{ active: boolean }>`
   position: relative;
   
   &:hover {
-    background: ${props => props.active ? '#007acc' : '#555'};
+    background: ${props => props.$active ? '#007acc' : '#555'};
   }
 `;
 
@@ -48,7 +48,7 @@ const AddTabButton = styled.button`
   }
 `;
 
-const CloseTabButton = styled.button`
+const CloseTabButton = styled.span`
   background: transparent;
   border: none;
   color: #ccc;
@@ -90,7 +90,7 @@ const StateTabs: React.FC<StateTabsProps> = ({
         {states.map((state) => (
           <Tab
             key={state.id}
-            active={state.id === currentStateId}
+            $active={state.id === currentStateId}
             onClick={() => onStateChange(state.id)}
           >
             {state.name}
